@@ -1,0 +1,16 @@
+version: '3'
+services:
+  preconf_bot:
+    build: .
+    networks:
+      - app-network
+    environment:
+      - PRIVATE_KEY=${PRIVATE_KEY}
+      - RPC_ENDPOINT=${RPC_ENDPOINT}
+      - WS_ENDPOINT=${WS_ENDPOINT}
+      - USE_PAYLOAD=${USE_PAYLOAD}
+      - BIDDER_ADDRESS=${BIDDER_ADDRESS}
+      - SERVICE_ADDRESS=mev-commit-bidder:13524
+networks:
+  app-network:
+    external: true
