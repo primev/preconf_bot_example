@@ -8,7 +8,8 @@ This repository provides an example workflow that gets preconfirmation bids from
 - mev-commit p2p bidder node (v0.6)
 
 ## Installation
-```git clone https://github.com/your-repository/preconf_blob_bidder.git
+```
+git clone https://github.com/primev/preconf_bot_example.git
 cd preconf_blob_bidder
 ```
 
