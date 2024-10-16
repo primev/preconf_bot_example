@@ -62,7 +62,7 @@ func SelfETHTransfer(client *ethclient.Client, authAcct bb.AuthAcct, value *big.
 		Value:     value,
 		Gas:       500_000,
 		GasFeeCap: maxFeePerGas,
-		GasTipCap: maxPriorityFee,
+		GasTipCap: big.NewInt((0)),
 	})
 
 	// Sign the transaction with the authenticated account's private key
