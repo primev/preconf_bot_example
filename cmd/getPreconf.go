@@ -20,6 +20,8 @@ import (
 	"golang.org/x/exp/rand"
 )
 
+var NUM_BLOBS = 6
+
 func main() {
 	// Load the .env file
 	err := godotenv.Load()
@@ -77,6 +79,15 @@ func main() {
 		if err != nil {
 			log.Crit("Invalid OFFSET value", "err", err)
 		}
+	}
+
+	// these variables are not required
+	ethTransfer := os.Getenv("ETH_TRANSFER")
+	blob := os.Getenv("BLOB")
+
+	// Validate that only one of the flags is set
+	if ethTransfer == "true" && blob == "true" {
+		log.Crit("Only one of --ethtransfer or --blob can be set at a time")
 	}
 
 	// Log configuration values (excluding sensitive data)
@@ -146,15 +157,32 @@ func main() {
 			log.Info("new block generated", "block", header.Number)
 
 			amount := new(big.Int).SetInt64(1e15)
-			signedTx, blockNumber, err := ee.SelfETHTransfer(wsClient, authAcct, amount, offset)
+			var signedTx *types.Transaction
+			var blockNumber uint64
+			if ethTransfer == "true" {
+				signedTx, blockNumber, err = ee.SelfETHTransfer(wsClient, authAcct, amount, offset)
+				println("eth transfer here")
+			} else if blob == "true" {
+				// Execute Blob Transaction
+				signedTx, blockNumber, err = ee.ExecuteBlobTransaction(wsClient, authAcct, NUM_BLOBS, offset)
+				println("blob here?")
+			}
+
+			if signedTx == nil {
+				fmt.Println("Transaction was not signed or created.")
+			} else {
+				// Proceed with the rest of your logic
+			}
+
+			// Check for errors before using signedTx
+			if err != nil {
+				log.Error("failed to execute transaction", "err", err)
+			}
 
 			log.Info("Transaction fee values",
-				"GasTipCap", signedTx.GasTipCap(),
-				"GasFeeCap", signedTx.GasFeeCap(),
-				"GasLimit", signedTx.Gas(),
 				"txHash", signedTx.Hash().String(),
-				"blockNumber", blockNumber,
-				"payloadSize", len(signedTx.Data()))
+				"blockNumber", blockNumber)
+
 
 			if usePayload {
 				// If use-payload is true, send the transaction payload to mev-commit. Don't send bundle
@@ -170,7 +198,7 @@ func main() {
 
 			// handle ExecuteBlob error
 			if err != nil {
-				log.Warn("failed to execute blob tx", "err", err)
+				log.Error("failed to execute blob tx", "err", err)
 				continue // Skip to the next endpoint
 			}
 		}
